@@ -28,6 +28,10 @@ public class User implements UserDetails {
     private String email;
     private String password;
     private String token;
+    @Column(name = "workgroup_id")
+    private int workgroupId;
+    @Column(name = "phone_number")
+    private String phoneNumber;
     public User(UserDTO userDTO) {
         this.id = userDTO.getId();
         this.firstName = userDTO.getFirstName();
@@ -35,6 +39,8 @@ public class User implements UserDetails {
         this.email = userDTO.getEmail();
         this.password = userDTO.getPassword();
         this.token = userDTO.getToken();
+        this.workgroupId = userDTO.getWorkgroupId();
+        this.phoneNumber = userDTO.getPhoneNumber();
     }
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

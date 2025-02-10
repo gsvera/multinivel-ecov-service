@@ -1,4 +1,4 @@
-package com.ecov.multinivel.dto;
+package com.ecov.multinivel.dto.generics;
 
 
 public class LoginRequestDTO {

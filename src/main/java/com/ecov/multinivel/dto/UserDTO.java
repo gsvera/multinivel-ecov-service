@@ -15,11 +15,14 @@ public class UserDTO {
     public String email;
     public String password;
     public String token;
+    public int workgroupId;
+    public String phoneNumber;
     public UserDTO(User user) {
         this.id = user.getId();
         this.firstName = user.getFirstName();
         this.lastName = user.getLastName();
         this.email = user.getEmail();
-        this.token = user.getToken();
+        this.workgroupId = user.getWorkgroupId();
+        this.phoneNumber = user.getPhoneNumber();
     }
 }
