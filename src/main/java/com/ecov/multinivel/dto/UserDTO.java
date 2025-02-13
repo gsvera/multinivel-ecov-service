@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.sql.Timestamp;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -17,6 +19,8 @@ public class UserDTO {
     public String token;
     public int workgroupId;
     public String phoneNumber;
+    public Timestamp createdDate;
+    private String referenceParent;
     public UserDTO(User user) {
         this.id = user.getId();
         this.firstName = user.getFirstName();
@@ -24,5 +28,6 @@ public class UserDTO {
         this.email = user.getEmail();
         this.workgroupId = user.getWorkgroupId();
         this.phoneNumber = user.getPhoneNumber();
+        this.referenceParent = user.getReferenceParent();
     }
 }

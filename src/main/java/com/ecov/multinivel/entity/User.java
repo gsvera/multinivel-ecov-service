@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.sql.Timestamp;
 import java.util.Collection;
 
 @Data
@@ -32,6 +33,11 @@ public class User implements UserDetails {
     private int workgroupId;
     @Column(name = "phone_number")
     private String phoneNumber;
+    private boolean active;
+    @Column(name = "created_date")
+    private Timestamp createdDate;
+    @Column(name = "reference_parent")
+    private String referenceParent;
     public User(UserDTO userDTO) {
         this.id = userDTO.getId();
         this.firstName = userDTO.getFirstName();
@@ -41,6 +47,8 @@ public class User implements UserDetails {
         this.token = userDTO.getToken();
         this.workgroupId = userDTO.getWorkgroupId();
         this.phoneNumber = userDTO.getPhoneNumber();
+        this.createdDate = userDTO.getCreatedDate();
+        this.referenceParent = userDTO.getReferenceParent();
     }
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

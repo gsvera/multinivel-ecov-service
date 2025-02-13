@@ -1,5 +1,6 @@
 package com.ecov.multinivel.controller;
 
+import com.ecov.multinivel.config.ConstantsConfig;
 import com.ecov.multinivel.dto.generics.LoginRequestDTO;
 import com.ecov.multinivel.dto.ResponseDTO;
 import com.ecov.multinivel.dto.UserDTO;
@@ -14,18 +15,31 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
     @Autowired
     private UserService userService;
-    @PostMapping("/save")
+    @Autowired
+    private ConstantsConfig constantsConfig;
+//    @PostMapping("/save")
+//    @ResponseStatus(HttpStatus.OK)
+//    public ResponseDTO saveUser(@RequestBody UserDTO userDTO){
+//        ResponseDTO responseDTO = new ResponseDTO();
+//        try{
+//            return userService._Save(userDTO);
+//        } catch (Exception ex) {
+//            responseDTO.error = true;
+////            responseDTO.message = ex.getMessage();
+//            responseDTO.message = "Ocurrio un error intentelo mas tarde";
+//        }
+//        return responseDTO;
+//    }
+    @PostMapping("/new-affiliate")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseDTO saveUser(@RequestBody UserDTO userDTO){
-        ResponseDTO responseDTO = new ResponseDTO();
+    public ResponseDTO newAffiliate(@RequestParam String reference, @RequestBody UserDTO userDTO) {
         try{
-            return userService._Save(userDTO);
+            userDTO.setWorkgroupId(constantsConfig.getWorkGroupIdAffiliate());
+            return userService._Save(userDTO, reference);
         } catch (Exception ex) {
-            responseDTO.error = true;
-//            responseDTO.message = ex.getMessage();
-            responseDTO.message = "Ocurrio un error intentelo mas tarde";
+            System.out.println(ex.getMessage());
+            return  ResponseDTO.builder().error(true).message("Ocurrio un error intentelo mas tarde").build();
         }
-        return responseDTO;
     }
     @PostMapping("/login")
     @ResponseStatus(HttpStatus.OK)
@@ -36,7 +50,7 @@ public class UserController {
         } catch(Exception ex) {
             responseDTO.error = true;
             responseDTO.message = "Usuario y/o contraseña incorrecto";
-//            responseDTO.message = ex.getMessage();
+            System.out.println(ex.getMessage());
         }
         return responseDTO;
     }
@@ -49,7 +63,7 @@ public class UserController {
             return userService._SendRecoveryPassword(email);
         } catch (Exception ex) {
             responseDTO.error = true;
-//            responseDTO.message = ex.getMessage();
+            System.out.println(ex.getMessage());
             responseDTO.message = "Ocurrio un error intentelo mas tarde";
         }
         return  responseDTO;
@@ -63,7 +77,7 @@ public class UserController {
         } catch (Exception ex) {
             responseDTO.error = true;
             responseDTO.message = "Ocurrio un error intentelo mas tarde";
-//            responseDTO.message = ex.getMessage();
+            System.out.println(ex.getMessage());
         }
         return responseDTO;
     }
@@ -75,9 +89,19 @@ public class UserController {
             return userService._UpdateNewPasswordByToken(changePassword);
         } catch (Exception ex) {
             responseDTO.error = true;
-//            responseDTO.message = ex.getMessage();
             responseDTO.message = "Ocurrio un error intentelo mas tarde";
+            System.out.println(ex.getMessage());
         }
         return responseDTO;
+    }
+    @PutMapping("/confirm-account")
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseDTO confirmAccount(@RequestParam(name = "token-confirm") String tokenConfirm) {
+        try{
+            return userService._ConfirmAccount(tokenConfirm);
+        } catch (Exception ex) {
+            System.out.println(ex.getMessage());
+            return  ResponseDTO.builder().error(true).message(ex.getMessage()).build();
+        }
     }
 }

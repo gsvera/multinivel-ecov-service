@@ -1,5 +1,7 @@
 package com.ecov.multinivel.service;
 
+import com.ecov.multinivel.config.ConstantsConfig;
+import com.ecov.multinivel.dto.ReferenceAffiliateDTO;
 import com.ecov.multinivel.dto.generics.LoginRequestDTO;
 import com.ecov.multinivel.dto.generics.ResetPasswordTokenDTO;
 import com.ecov.multinivel.dto.ResponseDTO;
@@ -11,12 +13,13 @@ import com.ecov.multinivel.repository.UserRepository;
 import com.ecov.multinivel.utils.EncrypDecrypCode;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -28,30 +31,57 @@ public class UserService {
     private final AuthenticationManager authenticationManager;
     private final ResetTokenService resetTokenService;
     private final MailService mailService;
-    @Value("${url.front}")
-    public String urlFront;
+    private final ReferenceAffiliateService referenceAffiliateService;
+    private final ConstantsConfig constantsConfig;
 
-    public ResponseDTO _Save(UserDTO userDTO) {
+    public ResponseDTO _Save(UserDTO userDTO, String reference) {
         Optional<User> user = userRepository.findByEmail(userDTO.email);
+        ReferenceAffiliateDTO referenceAffiliateDTO = referenceAffiliateService._GetByReference(reference.toUpperCase());
 
         if(user.isPresent()) {
             return ResponseDTO.builder().error(true).message("Ya existe un usuario con esos datos").build();
         }
+        if(referenceAffiliateDTO == null) {
+            return ResponseDTO.builder().error(true).message("No se pudo crear el usuario, debe agregar una referencia valida").build();
+        }
 
         UUID uuid = UUID.randomUUID();
         BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-        String encodedPassword = encoder.encode(userDTO.password); // EL PASSWORD DEBE VENIR ENCRYPTADO DESDE FRONT PARA DESENCRYPTAR PARA SEGURIDAD DE COMUNICACION
         userDTO.setId(uuid.toString());
-        userDTO.setPassword(encodedPassword);
+        userDTO.setCreatedDate(Timestamp.from(Instant.now()));
+        userDTO.setReferenceParent(referenceAffiliateDTO.idUser);
+        try{
+            String decryptPass = EncrypDecrypCode.passwordDecrypt(userDTO.password); // DESENCRYPTAR PASSWORD DE CLIENT FRONT
+            String encodedPassword = encoder.encode(decryptPass); // ENCRYPTAR PARA GUARDAR EN BD
+            userDTO.setPassword(encodedPassword);
+        } catch (Exception ex) {
+            System.out.println(ex.getMessage());
+            return ResponseDTO.builder().error(true).message("Ocurrio un error intentelo mas tarde").build();
+        }
 
         User newUser = new User(userDTO);
 
         userRepository.save(newUser);
+        referenceAffiliateService._SaveReferenceByUser(userDTO.getFirstName().substring(0, 2).toUpperCase() + userDTO.getLastName().substring(0,2).toUpperCase(), userDTO.getId());
 
         String token = jwtService.GetToken(newUser);
         userRepository.updateTokenById(newUser.getId(), token);
 
-        return ResponseDTO.builder().items(token).build();
+        try{
+            if(userDTO.getWorkgroupId() == constantsConfig.getWorkGroupIdAffiliate()) {
+                String completeName = userDTO.getFirstName() +" "+userDTO.getLastName();
+                mailService._SendNewAffiliate(completeName, userDTO.getEmail(), userDTO.getId());
+            }
+        } catch (Exception ex) {
+            System.out.println(ex.getMessage());
+        }
+
+
+        return ResponseDTO.builder().items(
+                    SessionDTO.builder()
+                            .token(token)
+                            .userDTO(userDTO).build()
+                    ).build();
     }
     public ResponseDTO _Login(LoginRequestDTO loginRequestDTO) throws Exception {
         Optional<User> user = userRepository.findByEmail(loginRequestDTO.email);
@@ -59,6 +89,9 @@ public class UserService {
         String decryptPass = EncrypDecrypCode.passwordDecrypt(loginRequestDTO.password);
 
         if(user.isPresent()) {
+            if(!user.get().isActive()) {
+                return ResponseDTO.builder().error(true).message("Su cuenta no ha sido verificada o esta inactiva").build();
+            }
             boolean passwordMatch = encoder.matches(decryptPass, user.get().getPassword());
             if(passwordMatch) {
                 authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequestDTO.email, decryptPass));
@@ -83,46 +116,8 @@ public class UserService {
 
         if(user.isPresent()) {
             String token = resetTokenService._GenerateToken(email);
-            String htmlBody = "<!DOCTYPE html>\n" +
-                    "<html lang=\"en\">\n" +
-                    "<head>\n" +
-                    "    <meta charset=\"UTF-8\">\n" +
-                    "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n" +
-                    "    <title>Reset Password Eco-v</title>"+
-                    "    <style>\n" +
-                    "       span, strong, h1, div{\n" +
-                    "            font-family: sans-serif;\n" +
-                    "        }\n" +
-                    "        .card-ecov {\n" +
-                    "            padding: 50px;\n" +
-                    "            border-radius: 15px;\n" +
-                    "            box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.5);\n" +
-                    "            margin: auto;\n" +
-                    "            color: gray;\n" +
-                    "            font-weight: bold;\n" +
-                    "            width: 350px;\n" +
-                    "            text-align: justify;\n" +
-                    "            background-color: white;\n" +
-                    "        }\n" +
-                    "        .link-ecov {\n" +
-                    "            color: gray;\n" +
-                    "        }"+
-                    "    </style>\n" +
-                    "</head>\n" +
-                    "<body>\n" +
-                    "    <div style=\"background-color: #182236; padding: 50px;\" >\n" +
-                    "        <div class=\"card-ecov\">\n" +
-                    "            <p>Hola "+user.get().getFirstName()+" "+user.get().getLastName()+", se solicto un cambio de contraseña, a continuacion ingrese al siguiente link para cambiar su contraseña, si usted no realizo esta solicitud favor de ignorar este mensaje.</p>\n" +
-                    "           <br />\n" +
-                    "            <br />\n" +
-                    "           <div style=\"text-align: center;\">\n" +
-                    "                <a class=\"link-ecov\" href=\""+urlFront+"/reset-new-password?token="+token+"\">De click aqui</a>\n" +
-                    "            </div>"+
-                    "        </div>\n" +
-                    "    </div>\n" +
-                    "</body>\n" +
-                    "</html>";
-            mailService.SendEmail(user.get().getEmail(), "Eco-v recuperación de contraseña", htmlBody);
+            String completeName = user.get().getFirstName()+" "+user.get().getLastName();
+            mailService._SendRecoveryPassword(completeName, user.get().getEmail(), token);
 
         } else {
             responseDTO.error = true;
@@ -155,5 +150,14 @@ public class UserService {
             }
         }
         return ResponseDTO.builder().error(true).message("El token ha expirado").build();
+    }
+    public ResponseDTO _ConfirmAccount(String tokenConfirm) {
+        Optional<User> user = userRepository.findById(tokenConfirm);
+        if(user.isPresent()) {
+            user.get().setActive(true);
+            userRepository.save(user.get());
+            return ResponseDTO.builder().message("Cuenta confirmada").build();
+        }
+        return ResponseDTO.builder().error(true).message("No se ha encontrado una cuenta para confirmar").build();
     }
 }
