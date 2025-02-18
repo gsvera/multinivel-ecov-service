@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 
@@ -21,4 +22,34 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Transactional @Modifying
     @Query(value = "UPDATE tbl_users SET token = '' WHERE token = ?1", nativeQuery = true)
     int updateToken(String token);
+
+    @Query(value = """
+            WITH RECURSIVE user_hierarchy AS (
+                        SELECT
+                            id,
+                            first_name,
+                            last_name,
+                            reference_parent,
+                            created_date,
+                            0 AS nivel
+                        FROM tbl_users
+                        WHERE reference_parent IS NULL
+                        
+                        UNION ALL
+                        
+                        SELECT
+                            u.id,
+                            u.first_name,
+                            u.last_name,
+                            u.reference_parent,
+                            u.created_date,
+                            uh.nivel + 1
+                        FROM tbl_users u
+                        INNER JOIN user_hierarchy uh ON u.reference_parent = uh.id
+                    )
+                    SELECT * FROM user_hierarchy ORDER BY nivel
+            """, nativeQuery = true)
+    List<Object[]> findUserHierarchy();
+    @Query(value = "SELECT * FROM tbl_users WHERE workgroup_id = ?1", nativeQuery = true)
+    List<User> findAllAffiliate(int workgroupId);
 }

@@ -89,7 +89,7 @@ public class UserService {
         String decryptPass = EncrypDecrypCode.passwordDecrypt(loginRequestDTO.password);
 
         if(user.isPresent()) {
-            if(!user.get().isActive()) {
+            if(!user.get().getActive()) {
                 return ResponseDTO.builder().error(true).message("Su cuenta no ha sido verificada o esta inactiva").build();
             }
             boolean passwordMatch = encoder.matches(decryptPass, user.get().getPassword());

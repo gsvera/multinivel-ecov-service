@@ -33,7 +33,7 @@ public class User implements UserDetails {
     private int workgroupId;
     @Column(name = "phone_number")
     private String phoneNumber;
-    private boolean active;
+    private Boolean active;
     @Column(name = "created_date")
     private Timestamp createdDate;
     @Column(name = "reference_parent")
