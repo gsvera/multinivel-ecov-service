@@ -12,5 +12,6 @@ public class ConstantsConfig {
     public int getWorkGroupIdAffiliate() {
         return  this.workGroupIdAffiliate;
     }
+    public int getWorkGroupIdAdmin() { return this.workGroupIdAdmin;}
     public String getUrlFront(){ return this.urlFront;}
 }
