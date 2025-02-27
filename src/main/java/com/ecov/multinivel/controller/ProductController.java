@@ -57,4 +57,13 @@ public class ProductController {
             return ResponseDTO.builder().error(true).message("Ocurrio un error intentelo mas tarde").build();
         }
     }
+    @GetMapping("/get-purchased-product-by-filter")
+    public ResponseDTO GetArticlesBought(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size, @RequestParam(required = false) String word) {
+        try{
+            return productService._GetArticlesPurchased(page, size, word);
+        } catch (Exception ex) {
+            System.out.println(ex.getMessage());
+            return ResponseDTO.builder().error(true).message("Ocurrio un error intentelo mas tarde").build();
+        }
+    }
 }

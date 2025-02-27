@@ -33,6 +33,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
                             last_name,
                             reference_parent,
                             created_date,
+                            active,
                             0 AS nivel
                         FROM tbl_users
                         WHERE reference_parent IS NULL
@@ -45,6 +46,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
                             u.last_name,
                             u.reference_parent,
                             u.created_date,
+                            u.active,
                             uh.nivel + 1
                         FROM tbl_users u
                         INNER JOIN user_hierarchy uh ON u.reference_parent = uh.id
@@ -60,6 +62,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
                             last_name,
                             reference_parent,
                             created_date,
+                            active,
                             0 AS nivel
                         FROM tbl_users
                         WHERE id = ?1
@@ -72,6 +75,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
                             u.last_name,
                             u.reference_parent,
                             u.created_date,
+                            u.active,
                             uh.nivel + 1
                         FROM tbl_users u
                         INNER JOIN user_hierarchy uh ON u.reference_parent = uh.id
@@ -80,5 +84,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
             """, nativeQuery = true)
     List<Object[]> findUserByUserId(String userId);
     @Query(value = "SELECT * FROM tbl_users WHERE workgroup_id = ?1 AND (?2 IS NULL OR first_name ILIKE %?2% OR last_name ILIKE %?2% OR email ILIKE %?2%)", nativeQuery = true)
-    Page<User> findAllAffiliate(int workgroupId, String word, Pageable pageable);
+       Page<User> findAllAffiliate(int workgroupId, String word, Pageable pageable);
 }

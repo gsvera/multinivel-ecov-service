@@ -44,9 +44,10 @@ public class AffiliateService {
             String lastName = (String) row[2];
             String referenceParent = row[3] != null ? (String) row[3] : null;
             Timestamp createdDate = (Timestamp) row[4];
-            int nivel = (int) row[5];
+            Boolean active = (Boolean) row[5];
+            int nivel = (int) row[6];
 
-            UserDTO user = new UserDTO(id, firstName, lastName,  nivel, createdDate);
+            UserDTO user = new UserDTO(id, firstName, lastName,  nivel, createdDate, active);
             userMap.put(id, user);
 
             // Si no tiene padre, es un nodo raíz

@@ -36,11 +36,12 @@ public class UserDTO {
         this.referenceParent = user.getReferenceParent();
         this.active = user.getActive();
     }
-    public UserDTO(String id, String firstName, String lastName, int nivel, Timestamp createdDate) {
+    public UserDTO(String id, String firstName, String lastName, int nivel, Timestamp createdDate, Boolean active) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
         this.nivel = nivel;
         this.createdDate = createdDate;
+        this.active = active;
     }
 }

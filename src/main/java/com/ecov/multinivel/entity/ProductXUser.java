@@ -24,4 +24,6 @@ public class ProductXUser {
     private String payMethod;
     @Column(name = "payment_file", columnDefinition = "text")
     private String paymentFile;
+    @Column(name = "id_pay_affiliate")
+    private Long idPayAffiliate;
 }

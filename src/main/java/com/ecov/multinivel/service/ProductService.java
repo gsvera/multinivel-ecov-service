@@ -2,9 +2,12 @@ package com.ecov.multinivel.service;
 
 import com.ecov.multinivel.dto.*;
 import com.ecov.multinivel.dto.generics.BuyDTO;
+import com.ecov.multinivel.dto.generics.PageableResponseDTO;
 import com.ecov.multinivel.entity.*;
 import com.ecov.multinivel.repository.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
@@ -46,6 +49,30 @@ public class ProductService {
         }
         return ResponseDTO.builder().items(listProductUser).build();
     }
+    public ResponseDTO _GetArticlesPurchased(int page, int size, String word) {
+        PageRequest pageRequest = PageRequest.of(page, size);
+        Page<Object[]> listProduct = productXUserRepository.findProductByFilter(word, pageRequest);
+        List<ProductXUserDTO> listProductUser = new ArrayList<>();
+        for(Object[] row : listProduct) {
+            ProductXUserDTO productXUserDTO = new ProductXUserDTO();
+            productXUserDTO.id = (Long)row[0];
+            productXUserDTO.nameProduct = (String)row[1];
+            productXUserDTO.dateBuy = (Timestamp) row[2];
+            productXUserDTO.paymentFile = (String) row[3];
+            productXUserDTO.payMethod = (String) row[4];
+            productXUserDTO.statusBuy = (String) row[5];
+            productXUserDTO.nameAffiliate = (String) row[6];
+            productXUserDTO.statusPayAffiliate = (int) row[7];
+            listProductUser.add(productXUserDTO);
+        }
+        return ResponseDTO.builder().items(
+                PageableResponseDTO
+                        .builder()
+                        .result(listProductUser)
+                        .isLastPage(listProduct.isLast())
+                        .build()
+        ).build();
+    }
     public ResponseDTO _GetQuotasByProduct(Long id) {
         List<DetailPayProduct> detailPayProductList = detailPayProductRepository.findByIdProduct(id);
         return ResponseDTO.builder().items(
@@ -68,6 +95,16 @@ public class ProductService {
             return ResponseDTO.builder().error(true).message("Hubo un problema intentelo mas tarde").build();
         }
 
+        PayAffiliate payAffiliate = new PayAffiliate();
+        payAffiliate.setIdUser(user.get().getId());
+        payAffiliate.setAmount(buyDTO.amountToCharge);
+        payAffiliate.setDescription("Sistema vendido a: " + user.get().getFirstName() + " " + user.get().getLastName());
+        payAffiliate.setStatusPay(buyDTO.statusPay);
+        payAffiliate.setCreatedDate(Timestamp.from(Instant.now()));
+        payAffiliate.setPaymentFile(buyDTO.paymentFile);
+        payAffiliate.setPayMethod(buyDTO.payMethod);
+        payAffiliateRepository.save(payAffiliate);
+
         ProductXUser productXUser = new ProductXUser();
         productXUser.setIdProduct(buyDTO.idProduct);
         productXUser.setIdUser(buyDTO.idUser);
@@ -75,17 +112,8 @@ public class ProductService {
         productXUser.setDateBuy(Timestamp.from(Instant.now()));
         productXUser.setPaymentFile(buyDTO.paymentFile);
         productXUser.setPayMethod(buyDTO.payMethod);
+        productXUser.setIdPayAffiliate(payAffiliate.getId());
         productXUserRepository.save(productXUser);
-
-        PayAffiliate payAffiliate = new PayAffiliate();
-        payAffiliate.setIdUser(user.get().getId());
-        payAffiliate.setAmount(buyDTO.amountToCharge);
-        payAffiliate.setDescription("Sistema vendido a :" + user.get().getFirstName() + " " + user.get().getLastName());
-        payAffiliate.setStatusPay(buyDTO.statusPay);
-        payAffiliate.setCreatedDate(Timestamp.from(Instant.now()));
-        payAffiliate.setPaymentFile(buyDTO.paymentFile);
-        payAffiliate.setPayMethod(buyDTO.payMethod);
-        payAffiliateRepository.save(payAffiliate);
 
         commissionService._GenerateCommissionByBuy(new UserDTO(user.get()), payAffiliate.getId(), product.get().getFirstCommission(),payCommission);
 
