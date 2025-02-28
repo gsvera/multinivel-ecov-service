@@ -14,7 +14,7 @@ public interface CommissionAffiliateRepository extends JpaRepository<CommissionA
             "ca.idPay, ca.statusPay, u, pa) " +
             "FROM CommissionAffiliate ca " +
             "LEFT JOIN ca.user u " +
-            "LEFT JOIN ca.payAffiliate pa WHERE (?1 IS NULL OR u.firstName ILIKE %?1% OR u.lastName ILIKE %?1%) ")
+            "LEFT JOIN ca.payAffiliate pa WHERE ca.statusPay IN (-1, 0) AND (?1 IS NULL OR u.firstName ILIKE %?1% OR u.lastName ILIKE %?1%) ")
     Page<CommissionAffiliateDTO> findByFiltedData(String word, Pageable pageable);
 
 }
