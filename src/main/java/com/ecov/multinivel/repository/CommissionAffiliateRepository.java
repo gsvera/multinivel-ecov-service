@@ -1,7 +1,20 @@
 package com.ecov.multinivel.repository;
 
+import com.ecov.multinivel.dto.CommissionAffiliateDTO;
 import com.ecov.multinivel.entity.CommissionAffiliate;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+
+import java.util.List;
 
 public interface CommissionAffiliateRepository extends JpaRepository<CommissionAffiliate, Long> {
+    @Query(value = "SELECT new com.ecov.multinivel.dto.CommissionAffiliateDTO(ca.id, ca.idUserPay, ca.idUserCommission, ca.amountCommission, " +
+            "ca.idPay, ca.statusPay, u, pa) " +
+            "FROM CommissionAffiliate ca " +
+            "LEFT JOIN ca.user u " +
+            "LEFT JOIN ca.payAffiliate pa WHERE (?1 IS NULL OR u.firstName ILIKE %?1% OR u.lastName ILIKE %?1%) ")
+    Page<CommissionAffiliateDTO> findByFiltedData(String word, Pageable pageable);
+
 }

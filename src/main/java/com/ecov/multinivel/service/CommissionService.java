@@ -1,16 +1,21 @@
 package com.ecov.multinivel.service;
 
 import com.ecov.multinivel.config.ConstantsConfig;
+import com.ecov.multinivel.dto.CommissionAffiliateDTO;
 import com.ecov.multinivel.dto.ResponseDTO;
 import com.ecov.multinivel.dto.UserDTO;
+import com.ecov.multinivel.dto.generics.PageableResponseDTO;
 import com.ecov.multinivel.entity.CommissionAffiliate;
 import com.ecov.multinivel.entity.User;
 import com.ecov.multinivel.repository.CommissionAffiliateRepository;
 import com.ecov.multinivel.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -35,5 +40,17 @@ public class CommissionService {
             return ResponseDTO.builder().message("Se genero la comision con exito").build();
         }
         return ResponseDTO.builder().error(true).message("No se encontro afiliado de referencia").build();
+    }
+    public ResponseDTO _GetComissionByFilterData(int page, int size, String word) {
+        PageRequest pageRequest = PageRequest.of(page, size);
+        Page<CommissionAffiliateDTO> list = commissionAffiliateRepository.findByFiltedData(word, pageRequest);
+
+        return ResponseDTO.builder().items(
+                PageableResponseDTO
+                        .builder()
+                        .isLastPage(list.isLast())
+                        .result(list.stream().collect(Collectors.toList()))
+                        .build())
+                .build();
     }
 }

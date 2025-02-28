@@ -1,9 +1,11 @@
 package com.ecov.multinivel.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Data;
 
 import java.sql.Timestamp;
+import java.util.List;
 
 @Data
 @Entity
@@ -24,5 +26,7 @@ public class PayAffiliate {
     private String paymentFile;
     @Column(name = "pay_method")
     private String payMethod;
-
+    @OneToMany(mappedBy = "payAffiliate")
+    @JsonBackReference
+    private List<CommissionAffiliate> commissionAffiliates;
 }
