@@ -26,6 +26,8 @@ public class PayAffiliate {
     private String paymentFile;
     @Column(name = "pay_method")
     private String payMethod;
+    @Column(name = "first_pay")
+    private Boolean firstPay;
     @OneToMany(mappedBy = "payAffiliate")
     @JsonBackReference
     private List<CommissionAffiliate> commissionAffiliates;

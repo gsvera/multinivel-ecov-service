@@ -7,6 +7,7 @@ public class ProductXUserDTO {
     public String idUser;
     public Long idProduct;
     public Long idStatusBuy;
+    public Long idPayAffiliate;
     public int statusPayAffiliate;
     public String nameProduct;
     public Timestamp dateBuy;

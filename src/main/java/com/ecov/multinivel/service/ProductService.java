@@ -60,9 +60,10 @@ public class ProductService {
             productXUserDTO.dateBuy = (Timestamp) row[2];
             productXUserDTO.paymentFile = (String) row[3];
             productXUserDTO.payMethod = (String) row[4];
-            productXUserDTO.statusBuy = (String) row[5];
-            productXUserDTO.nameAffiliate = (String) row[6];
-            productXUserDTO.statusPayAffiliate = (int) row[7];
+            productXUserDTO.idPayAffiliate = (Long) row[5];
+            productXUserDTO.statusBuy = (String) row[6];
+            productXUserDTO.nameAffiliate = (String) row[7];
+            productXUserDTO.statusPayAffiliate = (int) row[8];
             listProductUser.add(productXUserDTO);
         }
         return ResponseDTO.builder().items(
@@ -103,6 +104,7 @@ public class ProductService {
         payAffiliate.setCreatedDate(Timestamp.from(Instant.now()));
         payAffiliate.setPaymentFile(buyDTO.paymentFile);
         payAffiliate.setPayMethod(buyDTO.payMethod);
+        payAffiliate.setFirstPay(true);
         payAffiliateRepository.save(payAffiliate);
 
         ProductXUser productXUser = new ProductXUser();
@@ -118,5 +120,10 @@ public class ProductService {
         commissionService._GenerateCommissionByBuy(new UserDTO(user.get()), payAffiliate.getId(), product.get().getFirstCommission(),payCommission);
 
         return ResponseDTO.builder().message("Se creo el registro con éxito").build();
+    }
+    public void _UpdateProductXUser(ProductXUser productXUser) {
+        StatusBuy statusBuy = statusBuyRepository.findByOrderStatus(2); // Se cambia el status a comprado
+        productXUser.setIdStatusBuy(statusBuy.getId());
+        productXUserRepository.save((productXUser));
     }
 }

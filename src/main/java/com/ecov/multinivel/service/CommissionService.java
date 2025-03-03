@@ -53,4 +53,13 @@ public class CommissionService {
                         .build())
                 .build();
     }
+    public ResponseDTO _ChangeStatusByPay(Long idPay) {
+        Optional<CommissionAffiliate> commissionAffiliate = commissionAffiliateRepository.findByIdPay(idPay);
+        if(commissionAffiliate.isPresent()) {
+            commissionAffiliate.orElseThrow().setStatusPay(0);
+            commissionAffiliateRepository.save(commissionAffiliate.get());
+            return ResponseDTO.builder().message("Cambio de estatus de comision").build();
+        }
+        return ResponseDTO.builder().build();
+    }
 }
