@@ -85,4 +85,15 @@ public class PaymentAffiliateService {
         }
         return ResponseDTO.builder().error(true).message("No se encontro el pago").build();
     }
+    public ResponseDTO _RejectPay(Long idPay, String observation) {
+        Optional<PayAffiliate> payAffiliate = payAffiliateRepository.findById(idPay);
+        if(payAffiliate.isPresent()) {
+            payAffiliate.orElseThrow().setStatusPay(-1);// Se usa menos dos para denegar el pago
+            payAffiliate.orElseThrow().setObservation(observation);
+            payAffiliateRepository.save(payAffiliate.get());
+            return ResponseDTO.builder().message("Pago denegado").build();
+        } else {
+            return ResponseDTO.builder().error(true).message("No se encontro el pago").build();
+        }
+    }
 }

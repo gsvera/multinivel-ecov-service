@@ -2,9 +2,10 @@ package com.ecov.multinivel.controller;
 
 import com.ecov.multinivel.dto.ResponseDTO;
 import com.ecov.multinivel.service.PaymentAffiliateService;
-import com.ecov.multinivel.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/ecov/payment")
@@ -18,7 +19,7 @@ public class PaymentController {
             return paymentAffiliateService._GetByFilterData(page,size, word);
         } catch (Exception ex) {
             System.out.println(ex.getMessage());
-            return ResponseDTO.builder().error(true).message(ex.getMessage()).build();
+            return ResponseDTO.builder().error(true).message("Ocurrio un error intentelo mas tarde").build();
         }
     }
     @PutMapping("/confirmed-buy-by-pay")
@@ -29,6 +30,17 @@ public class PaymentController {
             } else {
                 return paymentAffiliateService._ConfirmPay(idPay);
             }
+        } catch (Exception ex) {
+            System.out.println(ex.getMessage());
+            return ResponseDTO.builder().error(true).message("Ocurrio un error intentelo mas tarde").build();
+        }
+    }
+    @PutMapping("/reject-pay")
+    public ResponseDTO RejectPay(@RequestBody Map<String, Object> data){
+        try{
+            Long idPay = ((Number) data.get("idPay")).longValue();
+            String observation = (String) data.get("observation");
+            return paymentAffiliateService._RejectPay(idPay, observation);
         } catch (Exception ex) {
             System.out.println(ex.getMessage());
             return ResponseDTO.builder().error(true).message(ex.getMessage()).build();
